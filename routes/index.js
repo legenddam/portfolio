@@ -18,4 +18,9 @@ router.get('/', function(req, res, next) {
   });
 });
 
+router.get('/details/:id', function(req, res, next){
+  connection.query("SELECT * FROM projects WHERE id = ?", req.params.id, function(err, rows, fields){
+    res.render('details', {project : rows[0]})
+  });
+});
 module.exports = router;
