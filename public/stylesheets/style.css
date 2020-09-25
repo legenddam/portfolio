@@ -11,3 +11,9 @@ a:hover {
 .padding{
 	padding: 30px;
 }
+
+.small-img
+{
+	width : 100px;
+	height : 100px;
+}

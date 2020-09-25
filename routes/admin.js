@@ -2,9 +2,9 @@ var express = require('express');
 var router = express.Router();
 var multer = require('multer');
 var upload = multer({dest : './public/images/portfolio'});
-
+var expressValidator = require('express-validator');
 var mysql = require('mysql');
-
+var session = require('express-session');
 var connection = mysql.createConnection({
   host : 'localhost',
   user : 'root',
@@ -15,10 +15,39 @@ var connection = mysql.createConnection({
 
 connection.connect();
 
+router.use(expressValidator({
+  errorFormatter: function(param, msg, value) {
+      var namespace = param.split('.')
+      , root    = namespace.shift()
+      , formParam = root;
+
+    while(namespace.length) {
+      formParam += '[' + namespace.shift() + ']';
+    }
+    return {
+      param : formParam,
+      msg   : msg,
+      value : value
+    };
+  }
+})); 
+
 router.use(require('connect-flash')());
+router.use(function (req, res, next) {
+  res.locals.messages = require('express-messages')(req, res);
+  next();
+});
+router.use(session({
+  secret : 'secret',
+  saveUninitialized : true,
+  resave : true
+}));
 /* GET users listing. */
 router.get('/', function(req, res, next) {
-  res.render('admin/index');
+  connection.query("SELECT * FROM projects", function(err, rows, fields){
+    if(err) throw err;
+    res.render('admin/index', {projects:rows});
+  });
 });
 
 router.get('/add', function(req, res, next) {
@@ -43,9 +72,9 @@ router.post('/add', upload.single('projectimage'), function(req, res, next) {
   
   req.checkBody('title', 'Title field is required').notEmpty();
   req.checkBody('service', 'Service field is required').notEmpty();
+
   var errors = req.validationErrors();
   if(errors){
-    console.log('Error');
     res.render('admin/add',{
       errors : errors,
       title : title,
@@ -54,7 +83,6 @@ router.post('/add', upload.single('projectimage'), function(req, res, next) {
       client : client
     })
   }else{
-    console.log('no Errors');
     var project = {
       title : title,
       description : description,
@@ -68,13 +96,14 @@ router.post('/add', upload.single('projectimage'), function(req, res, next) {
   }
   
   var query = connection.query('INSERT INTO projects SET ?', project, function(err, result){
-    console.log('Error' + err);
-    console.log('Success' + result);
+    console.log('Error: ' + err);
+    console.log('Success: ' + result);
   });
-  req.flash('success','The project Added');
+  req.flash('success', 'Project Added');
 
   res.redirect('/admin');
 
 });
+
 
 module.exports = router;
