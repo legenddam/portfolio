@@ -184,4 +184,13 @@ router.post('/edit/:id', upload.single('projectimage'), function(req, res, next)
   res.redirect('/admin');
 });
 
+router.delete('/delete/:id', function(req, res){
+  console.log("Delete Page");
+  connection.query("DELETE FROM projects WHERE id = " + req.params.id, function(err, result){
+    if(err) throw err;
+    console.log('deleted' + result.affectedRows + 'rows');
+  });
+  req.flash('success', "Project Deleted");
+  res.sendStatus(200);
+});
 module.exports = router;
