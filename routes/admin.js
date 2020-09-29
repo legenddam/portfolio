@@ -54,6 +54,10 @@ router.get('/add', function(req, res, next) {
   res.render('admin/add');
 });
 
+router.get('/edit/:id', function(req, res, next){
+  res.render('admin/edit');
+});
+
 router.post('/add', upload.single('projectimage'), function(req, res, next) {
   var title = req.body.title;
   var description = req.body.description;
@@ -88,7 +92,6 @@ router.post('/add', upload.single('projectimage'), function(req, res, next) {
       description : description,
       service : service,
       client : client,
-      service : service,
       url : projecturl,
       date : projectdate,
       image : projectImageName
@@ -104,6 +107,5 @@ router.post('/add', upload.single('projectimage'), function(req, res, next) {
   res.redirect('/admin');
 
 });
-
 
 module.exports = router;
