@@ -54,9 +54,7 @@ router.get('/add', function(req, res, next) {
   res.render('admin/add');
 });
 
-router.get('/edit/:id', function(req, res, next){
-  res.render('admin/edit');
-});
+
 
 router.post('/add', upload.single('projectimage'), function(req, res, next) {
   var title = req.body.title;
@@ -106,6 +104,84 @@ router.post('/add', upload.single('projectimage'), function(req, res, next) {
 
   res.redirect('/admin');
 
+});
+
+router.get('/edit/:id', function(req, res, next){
+  connection.query("SELECT * FROM projects WHERE id = ?", req.params.id, function(err, rows, fields){
+    res.render('admin/edit', {project : rows[0]})
+  });
+});
+
+router.post('/edit/:id', upload.single('projectimage'), function(req, res, next) {
+  var title = req.body.title;
+  var description = req.body.description;
+  var service = req.body.service;
+  var client = req.body.client;
+  var projecturl = req.body.projecturl;
+  var projectdate = req.body.projectdate;
+
+  
+  
+  req.checkBody('title', 'Title field is required').notEmpty();
+  req.checkBody('service', 'Service field is required').notEmpty();
+
+  var errors = req.validationErrors();
+
+  if(req.file){
+    var projectImageName = req.file.filename;
+  }
+  else{
+    var projectImageName = "noImage.jpg";
+  }
+  if(req.file){
+    var projectImageName = req.file.filename;
+    if(errors){
+      res.render('admin/add',{
+        errors : errors,
+        title : title,
+        description : description,
+        service : service,
+        client : client
+      })
+    }else{
+      var project = {
+        title : title,
+        description : description,
+        service : service,
+        client : client,
+        url : projecturl,
+        date : projectdate,
+        image : projectImageName
+      };
+    }
+  }else{
+    if(errors){
+      res.render('admin/add',{
+        errors : errors,
+        title : title,
+        description : description,
+        service : service,
+        client : client
+      })
+    }else{
+      var project = {
+        title : title,
+        description : description,
+        service : service,
+        client : client,
+        url : projecturl,
+        date : projectdate,
+      };
+    }
+  }
+
+  var query = connection.query('UPDATE projects SET ? WHERE id ='+req.params.id, project, function(err, result){
+    console.log('Error: ' + err);
+    console.log('Success: ' + result);
+  });
+  req.flash('success', 'Project Edited');
+
+  res.redirect('/admin');
 });
 
 module.exports = router;
